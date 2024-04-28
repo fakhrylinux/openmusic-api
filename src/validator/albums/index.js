@@ -1,5 +1,5 @@
 const { AlbumIdSchema, AlbumPayloadSchema } = require('./schema');
-const InvariantError = require('../../exceptions/InvarlantError');
+const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
 const AlbumsValidator = {
