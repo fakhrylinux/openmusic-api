@@ -30,7 +30,11 @@ class PlaylistsService {
 
   async getPlaylists(username) {
     const query = {
-      text: 'SELECT * FROM playlists WHERE username = $1',
+      text: `SELECT playlists.id, playlists.name, users.username FROM playlists
+      INNER JOIN users ON playlists.username = users.id
+      LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
+      WHERE playlists.username = $1 OR collaborations.user_id = $1
+      GROUP BY playlists.id, users.username`,
       values: [username],
     };
     const result = await this._pool.query(query);
@@ -75,7 +79,9 @@ class PlaylistsService {
 
   async getPlaylistById(id) {
     const query = {
-      text: 'SELECT id, name FROM playlists WHERE id = $1',
+      text: `SELECT playlists.id, playlists.name, users.username FROM playlists 
+      INNER JOIN users ON playlists.username = users.id
+      WHERE playlists.id = $1`,
       values: [id],
     };
 
@@ -125,6 +131,7 @@ class PlaylistsService {
     }
     const playlist = result.rows[0];
     if (playlist.username !== username) {
+      console.log(playlist.username, username);
       throw new AuthorizationError('You are not authorized to access this resource');
     }
   }

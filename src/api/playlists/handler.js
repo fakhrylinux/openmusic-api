@@ -27,9 +27,9 @@ class PlaylistsHandler {
   }
 
   async getPlaylistsHandler(request) {
-    const { id: ownerId } = request.auth.credentials;
+    const { id: userId } = request.auth.credentials;
 
-    const playlists = await this._playlistsService.getPlaylists(ownerId);
+    const playlists = await this._playlistsService.getPlaylists(userId);
 
     return {
       status: 'success',
@@ -73,7 +73,6 @@ class PlaylistsHandler {
     const { id: playlistId } = request.params;
     await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
 
-    const username = await this._usersService.getUserById(credentialId);
     const playlist = await this._playlistsService.getPlaylistById(playlistId);
     const songs = await this._playlistsService.getSongsFromPlaylist(playlistId);
 
@@ -82,7 +81,6 @@ class PlaylistsHandler {
       data: {
         playlist: {
           ...playlist,
-          username: username.username,
           songs,
         },
       },
