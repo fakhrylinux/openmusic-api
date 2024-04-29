@@ -135,7 +135,6 @@ class PlaylistsService {
     }
     const playlist = result.rows[0];
     if (playlist.username !== username) {
-      console.log(playlist.username, username);
       throw new AuthorizationError('You are not authorized to access this resource');
     }
   }
