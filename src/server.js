@@ -113,7 +113,6 @@ const init = async () => {
       options: {
         playlistsService,
         songsService,
-        usersService,
         validator: PlaylistsValidator,
       },
     },
@@ -140,7 +139,6 @@ const init = async () => {
       return newResponse;
     }
 
-    console.log(response);
     return h.continue;
   });
 

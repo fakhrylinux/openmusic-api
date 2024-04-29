@@ -61,7 +61,7 @@ class PlaylistsService {
     }
   }
 
-  async addSongToPlaylist(playlistId, songId) {
+  async addSongToPlaylist(playlistId, songId, userId) {
     const id = nanoid(16);
 
     const query = {
@@ -73,6 +73,8 @@ class PlaylistsService {
     if (!result.rows[0].id) {
       throw new InvariantError('Failed to add song to playlist');
     }
+
+    await this.updateActivitiesTable(playlistId, songId, userId, 'add');
 
     return result.rows[0].id;
   }
@@ -108,7 +110,7 @@ class PlaylistsService {
     return result.rows;
   }
 
-  async deleteSongFromPlaylist(playlistId, songId) {
+  async deleteSongFromPlaylist(playlistId, songId, userId) {
     const query = {
       text: 'DELETE FROM playlist_songs WHERE playlist_id = $1 AND song_id = $2',
       values: [playlistId, songId],
@@ -118,6 +120,8 @@ class PlaylistsService {
     if (!result.rowCount) {
       throw new NotFoundError('Failed to delete song. ID not found');
     }
+
+    await this.updateActivitiesTable(playlistId, songId, userId, 'delete');
   }
 
   async verifyPlaylistOwner(playlistId, username) {
@@ -149,6 +153,31 @@ class PlaylistsService {
         throw error;
       }
     }
+  }
+
+  async getActivities(playlistId, userId) {
+    const query = {
+      text: `SELECT users.username, songs.title, playlist_song_activities.action, playlist_song_activities.time
+      FROM playlist_song_activities
+      INNER JOIN users ON users.id = playlist_song_activities.user_id
+      INNER JOIN songs ON songs.id = playlist_song_activities.song_id
+      WHERE playlist_song_activities.playlist_id = $1
+      AND playlist_song_activities.user_id = $2`,
+      values: [playlistId, userId],
+    };
+    const result = await this._pool.query(query);
+
+    return result.rows;
+  }
+
+  async updateActivitiesTable(playlistId, songId, userId, action) {
+    const activityId = nanoid(16);
+    const time = new Date().toISOString();
+    const activityQuery = {
+      text: 'INSERT INTO playlist_song_activities VALUES($1, $2, $3, $4,  $5, $6)',
+      values: [activityId, playlistId, songId, userId, action, time],
+    };
+    await this._pool.query(activityQuery);
   }
 }
 

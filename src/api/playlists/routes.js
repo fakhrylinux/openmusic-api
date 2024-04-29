@@ -50,7 +50,7 @@ const routes = (handler) => [
   {
     method: 'GET',
     path: '/playlists/{id}/activities',
-    handler: handler.deleteSongFromPlaylistHandler,
+    handler: handler.getActivitiesHandler,
     options: {
       auth: 'openmusic_jwt',
     },
