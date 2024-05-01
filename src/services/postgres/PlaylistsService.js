@@ -43,14 +43,12 @@ class PlaylistsService {
   }
 
   async deletePlaylistById(id) {
-    // Delete the junction table playlist_songs first
     const query1 = {
       text: 'DELETE FROM playlist_songs WHERE playlist_id = $1',
       values: [id],
     };
     await this._pool.query(query1);
 
-    // Then delete the playlist record
     const query2 = {
       text: 'DELETE FROM playlists WHERE id = $1',
       values: [id],
@@ -90,7 +88,7 @@ class PlaylistsService {
     const result = await this._pool.query(query);
 
     if (!result.rowCount) {
-      throw new NotFoundError('Album not found');
+      throw new NotFoundError('Playlist not found');
     }
 
     return {
@@ -135,6 +133,8 @@ class PlaylistsService {
     }
     const playlist = result.rows[0];
     if (playlist.username !== username) {
+      console.log(username);
+      console.log(playlist.username);
       throw new AuthorizationError('You are not authorized to access this resource');
     }
   }
