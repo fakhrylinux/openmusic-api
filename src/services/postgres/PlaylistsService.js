@@ -60,21 +60,19 @@ class PlaylistsService {
   }
 
   async addSongToPlaylist(playlistId, songId, userId) {
-    const id = nanoid(16);
+    try {
+      const id = nanoid(16);
+      const query = {
+        text: 'INSERT INTO playlist_songs VALUES($1, $2, $3) RETURNING id',
+        values: [id, playlistId, songId],
+      };
 
-    const query = {
-      text: 'INSERT INTO playlist_songs VALUES($1, $2, $3) RETURNING id',
-      values: [id, playlistId, songId],
-    };
-
-    const result = await this._pool.query(query);
-    if (!result.rows[0].id) {
-      throw new InvariantError('Failed to add song to playlist');
+      const result = await this._pool.query(query);
+      await this.updateActivitiesTable(playlistId, songId, userId, 'add');
+      return result.rows[0].id;
+    } catch (error) {
+      throw new InvariantError('Cannot add song twice');
     }
-
-    await this.updateActivitiesTable(playlistId, songId, userId, 'add');
-
-    return result.rows[0].id;
   }
 
   async getPlaylistById(id) {

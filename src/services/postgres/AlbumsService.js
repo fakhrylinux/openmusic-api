@@ -90,6 +90,49 @@ class AlbumsService {
       throw new NotFoundError('Failed to delete album. ID not found');
     }
   }
+
+  async addLikeAlbum(userId, albumId) {
+    try {
+      const id = nanoid(16);
+      const query = {
+        text: 'INSERT INTO user_album_likes values($1, $2, $3) RETURNING id',
+        values: [id, userId, albumId],
+      };
+
+      const result = await this._pool.query(query);
+      return result.rows[0].id;
+    } catch (error) {
+      throw new InvariantError('Cannot like album twice');
+    }
+  }
+
+  async deleteLikeAlbum(userId, albumId) {
+    const query = {
+      text: 'DELETE FROM user_album_likes WHERE user_id = $1 AND album_id = $2 RETURNING id',
+      values: [userId, albumId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('Album not found');
+    }
+  }
+
+  async getLikesCount(albumId) {
+    const query = {
+      text: 'SELECT COUNT(*)::INTEGER AS likes FROM user_album_likes WHERE album_id = $1',
+      values: [albumId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new NotFoundError('Album not found');
+    }
+
+    return result.rows[0];
+  }
 }
 
 module.exports = AlbumsService;

@@ -64,6 +64,39 @@ class AlbumsHandler {
       message: 'Album deleted successfully',
     };
   }
+
+  async postLikeToAlbumHandler(request, h) {
+    const { id: userId } = request.auth.credentials;
+    const { id: albumId } = request.params;
+    await this._service.getAlbumById(albumId);
+    await this._service.addLikeAlbum(userId, albumId);
+
+    return h.response({
+      status: 'success',
+      message: 'Like album success',
+    }).code(201);
+  }
+
+  async deleteLikeFromAlbumHandler(request) {
+    const { id: userId } = request.auth.credentials;
+    const { id: albumId } = request.params;
+    await this._service.deleteLikeAlbum(userId, albumId);
+
+    return {
+      status: 'success',
+      message: 'Dislike album success',
+    };
+  }
+
+  async getLikesCountFromAlbumHandler(request) {
+    const { id: albumId } = request.params;
+    const result = await this._service.getLikesCount(albumId);
+
+    return {
+      status: 'success',
+      data: result,
+    };
+  }
 }
 
 module.exports = AlbumsHandler;
