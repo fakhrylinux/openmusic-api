@@ -1,4 +1,5 @@
 const autoBind = require('auto-bind');
+const config = require('../../utils/config');
 
 class UploadsHandler {
   constructor(storageService, albumsService, validator) {
@@ -15,7 +16,7 @@ class UploadsHandler {
     const { id: albumId } = request.params;
 
     const filename = await this._service.writeFile(cover, cover.hapi);
-    const fileLocation = `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`;
+    const fileLocation = `http://${config.app.host}:${config.app.port}/upload/images/${filename}`;
     await this._albumsService.addCoverToAlbum(albumId, fileLocation);
 
     return h.response({
