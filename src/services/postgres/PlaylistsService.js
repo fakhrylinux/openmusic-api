@@ -26,12 +26,14 @@ class PlaylistsService {
       throw new InvariantError('Failed to add playlist');
     }
 
+    await this._cacheService.delete(`playlists:${owner}`);
+
     return result.rows[0].id;
   }
 
   async getPlaylists(username) {
     try {
-      const result = JSON.parse(await this._cacheService.get('playlists:songs'));
+      const result = JSON.parse(await this._cacheService.get(`playlists:${username}`));
 
       return {
         isCache: true,
@@ -40,13 +42,14 @@ class PlaylistsService {
     } catch (error) {
       const query = {
         text: `SELECT playlists.id, playlists.name, users.username FROM playlists
-      INNER JOIN users ON playlists.username = users.id
-      LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
-      WHERE playlists.username = $1 OR collaborations.user_id = $1
-      GROUP BY playlists.id, users.username`,
+        INNER JOIN users ON playlists.username = users.id
+        LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
+        WHERE playlists.username = $1 OR collaborations.user_id = $1
+        GROUP BY playlists.id, users.username`,
         values: [username],
       };
       const result = await this._pool.query(query);
+      await this._cacheService.set(`playlists:${username}`, JSON.stringify(result));
 
       return {
         isCache: false,
