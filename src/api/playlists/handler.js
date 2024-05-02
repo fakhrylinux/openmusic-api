@@ -25,17 +25,25 @@ class PlaylistsHandler {
     }).code(201);
   }
 
-  async getPlaylistsHandler(request) {
+  async getPlaylistsHandler(request, h) {
     const { id: userId } = request.auth.credentials;
-
     const playlists = await this._playlistsService.getPlaylists(userId);
 
-    return {
+    if (playlists.isCache) {
+      return h.response({
+        status: 'success',
+        data: {
+          playlists: playlists.result,
+        },
+      }).header('X-Data-Source', 'cache');
+    }
+
+    return h.response({
       status: 'success',
       data: {
-        playlists,
+        playlists: playlists.result,
       },
-    };
+    }).header('X-Data-Source', 'no-cache');
   }
 
   async deletePlaylistHandler(request) {

@@ -6,9 +6,10 @@ const AuthorizationError = require('../../exceptions/AuthorizationError');
 const { mapPlaylistDBToModel } = require('../../utils');
 
 class PlaylistsService {
-  constructor(collaborationService) {
+  constructor(collaborationService, cacheService) {
     this._pool = new Pool();
     this._collaborationService = collaborationService;
+    this._cacheService = cacheService;
   }
 
   async addPlaylist(name, owner) {
@@ -29,17 +30,29 @@ class PlaylistsService {
   }
 
   async getPlaylists(username) {
-    const query = {
-      text: `SELECT playlists.id, playlists.name, users.username FROM playlists
+    try {
+      const result = JSON.parse(await this._cacheService.get('playlists:songs'));
+
+      return {
+        isCache: true,
+        result,
+      };
+    } catch (error) {
+      const query = {
+        text: `SELECT playlists.id, playlists.name, users.username FROM playlists
       INNER JOIN users ON playlists.username = users.id
       LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
       WHERE playlists.username = $1 OR collaborations.user_id = $1
       GROUP BY playlists.id, users.username`,
-      values: [username],
-    };
-    const result = await this._pool.query(query);
+        values: [username],
+      };
+      const result = await this._pool.query(query);
 
-    return result.rows.map(mapPlaylistDBToModel);
+      return {
+        isCache: false,
+        result: result.rows.map(mapPlaylistDBToModel),
+      };
+    }
   }
 
   async deletePlaylistById(id) {
