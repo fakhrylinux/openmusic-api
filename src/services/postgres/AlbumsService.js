@@ -91,7 +91,7 @@ class AlbumsService {
       throw new NotFoundError('Failed to delete album. ID not found');
     }
 
-    await this._cacheService.delete('albums:likes');
+    await this._cacheService.delete(`albums:${id}`);
   }
 
   async addLikeAlbum(userId, albumId) {
@@ -121,12 +121,12 @@ class AlbumsService {
       throw new NotFoundError('Album not found');
     }
 
-    await this._cacheService.delete('albums:likes');
+    await this._cacheService.delete(`albums:${albumId}`);
   }
 
   async getLikesCount(albumId) {
     try {
-      const result = JSON.parse(await this._cacheService.get('albums:likes'));
+      const result = JSON.parse(await this._cacheService.get(`albums:${albumId}`));
 
       return {
         isCache: true,
@@ -145,7 +145,7 @@ class AlbumsService {
       }
 
       const result = resultRow.rows[0];
-      await this._cacheService.set('albums:likes', JSON.stringify(result));
+      await this._cacheService.set(`albums:${albumId}`, JSON.stringify(result));
 
       return {
         isCache: false,
