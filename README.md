@@ -25,5 +25,3 @@ npm run migrate up
 
 4. And run the app with `npm run start` or `npm run start:dev` for development.
 
-## Documentation
-You can read the API documentation at `BASE_URL/documentation`
